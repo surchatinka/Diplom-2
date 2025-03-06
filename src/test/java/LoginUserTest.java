@@ -45,8 +45,9 @@ public class LoginUserTest {
     }
     @Test
     public void authorizationNoLoginTest_fail(){
-        user.setEmail("");
-        ValidatableResponse response = client.loginUser(user);
+        User.UserBuilder builder = User.builder().email("").name(user.getName()).password(user.getPassword());
+        User userNoEmail = builder.build();
+        ValidatableResponse response = client.loginUser(userNoEmail);
         int code = response.extract().statusCode();
         token = response.extract().as(Token.class);
         boolean ok = response.extract().jsonPath().get("success");
@@ -58,8 +59,9 @@ public class LoginUserTest {
     }
     @Test
     public void authorizationNoPasswordTest_fail(){
-        user.setPassword("");
-        ValidatableResponse response = client.loginUser(user);
+        User.UserBuilder builder = User.builder().email(user.getEmail()).name(user.getName()).password("");
+        User userNoPassword = builder.build();
+        ValidatableResponse response = client.loginUser(userNoPassword);
         int code = response.extract().statusCode();
         token = response.extract().as(Token.class);
         boolean ok = response.extract().jsonPath().get("success");

@@ -1,6 +1,7 @@
 import client.StellarBurgerClient;
 import io.restassured.response.ValidatableResponse;
 
+import lombok.Builder;
 import model.Token;
 import model.User;
 import net.datafaker.Faker;
@@ -38,7 +39,7 @@ public class CreateUserTest {
     }
 
     @Test
-    public void createUser_ok() {
+    public void createUserTest_ok() {
         ValidatableResponse response = client.createUser(user);
         int code = response.extract().statusCode();
         token = response.extract().as(Token.class);
@@ -51,7 +52,7 @@ public class CreateUserTest {
 
     }
     @Test
-    public void createExistingUser_fail(){
+    public void createExistingUserTest_fail(){
         ValidatableResponse responseOriginal = client.createUser(user);
         ValidatableResponse responseExisted = client.createUser(user);
         int code = responseExisted.extract().statusCode();
@@ -64,9 +65,11 @@ public class CreateUserTest {
         Assert.assertEquals(MESSAGE_TEXT_DON_T_MATCH, USER_ALREADY_EXISTS,message);
     }
     @Test
-    public void createUserWithoutEmail_fail(){
-        user.setEmail("");
-        ValidatableResponse response = client.createUser(user);
+    public void createUserWithoutEmailTest_fail(){
+        User.UserBuilder builder = User.builder().email("").name(user.getName()).password(user.getPassword());
+        User userNoEmail = builder.build();
+
+        ValidatableResponse response = client.createUser(userNoEmail);
         int code = response.extract().statusCode();
         boolean ok = response.extract().jsonPath().get("success");
         String message = response.extract().jsonPath().get("message");
@@ -77,9 +80,11 @@ public class CreateUserTest {
         Assert.assertEquals(MESSAGE_TEXT_DON_T_MATCH, REQUIRED_FIELD_MISSING,message);
     }
     @Test
-    public void createUserWithoutPassword_fail(){
-        user.setPassword("");
-        ValidatableResponse response = client.createUser(user);
+    public void createUserWithoutPasswordTest_fail(){
+        User.UserBuilder builder = User.builder().email(user.getEmail()).name(user.getName()).password("");
+        User userNoPassword = builder.build();
+
+        ValidatableResponse response = client.createUser(userNoPassword);
         int code = response.extract().statusCode();
         boolean ok = response.extract().jsonPath().get("success");
         String message = response.extract().jsonPath().get("message");
@@ -90,9 +95,11 @@ public class CreateUserTest {
         Assert.assertEquals(MESSAGE_TEXT_DON_T_MATCH,REQUIRED_FIELD_MISSING,message);
     }
     @Test
-    public void createUserWithoutName_fail(){
-        user.setName("");
-        ValidatableResponse response = client.createUser(user);
+    public void createUserWithoutNameTest_fail(){
+        User.UserBuilder builder = User.builder().email(user.getEmail()).name("").password(user.getPassword());
+        User userNoName = builder.build();
+
+        ValidatableResponse response = client.createUser(userNoName);
         int code = response.extract().statusCode();
         boolean ok = response.extract().jsonPath().get("success");
         String message = response.extract().jsonPath().get("message");

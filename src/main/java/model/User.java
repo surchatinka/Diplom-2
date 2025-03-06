@@ -1,13 +1,15 @@
 package model;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Builder;
+import lombok.Value;
 
-@Data
+@Value
 @AllArgsConstructor
+@Builder
 public class User {
 
-    private String email;
-    private String password;
-    private String name;
+    String email;
+    String password;
+    String name;
 }
