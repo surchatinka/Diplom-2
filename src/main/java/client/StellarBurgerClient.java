@@ -8,14 +8,14 @@ import io.restassured.response.ValidatableResponse;
 import model.Token;
 import model.User;
 
-import static io.restassured.RestAssured.given;
+import static io.restassured.RestAssured.*;
 
 public class StellarBurgerClient {
     private static final String BASE_URI = "https://stellarburgers.nomoreparties.site";
     private static final String CREATE_USER_ENDPOINT = "/api/auth/register";
     private static final String LOGIN_ENDPOINT = "/api/auth/login";
     private static final String LOGOUT_ENDPOINT = "/api/auth/logout";
-    private static final String DELETE_USER_ENDPOINT = "https://stellarburgers.nomoreparties.site/api/auth/user";
+    private static final String AUTH_USER_ENDPOINT = "/api/auth/user";
 
     @Step
     @DisplayName ("Client - user create")
@@ -33,13 +33,13 @@ public class StellarBurgerClient {
 
     @Step
     @DisplayName ("Client - user delete")
-    public ValidatableResponse deleteUser(Token token){
-        return given()
+    public void deleteUser(Token token){
+        given()
                 .log().all()
                 .baseUri(BASE_URI)
                 .contentType(ContentType.JSON)
-                .basePath(DELETE_USER_ENDPOINT)
-                .body(token.getAccessToken())
+                .basePath(AUTH_USER_ENDPOINT)
+                .header("Authorization", token.getAccessToken())
                 .delete()
                 .then()
                 .log().all();
@@ -68,6 +68,46 @@ public class StellarBurgerClient {
                 .basePath(LOGOUT_ENDPOINT)
                 .body(token.getRefreshToken())
                 .post()
+                .then()
+                .log().all();
+    }
+    @Step
+    @DisplayName("Client - get user data")
+    public ValidatableResponse getUserData(Token token){
+        return given()
+                .log().all()
+                .baseUri(baseURI)
+                .contentType(ContentType.JSON)
+                .basePath(AUTH_USER_ENDPOINT)
+                .header("Authorization", token.getAccessToken())
+                .get()
+                .then()
+                .log().all();
+    }
+    @Step
+    @DisplayName("Client - update user data")
+    public ValidatableResponse updateUserData(Token token, String type, String email) throws Exception{
+        return given()
+                .log().all()
+                .baseUri(BASE_URI)
+                .contentType(ContentType.JSON)
+                .basePath(AUTH_USER_ENDPOINT)
+                .header("Authorization", token.getAccessToken())
+                .body(String.format("{\"%s\":\"%s\"}",type,email))
+                .patch()
+                .then()
+                .log().all();
+    }
+    @Step
+    @DisplayName("Client - update user data - no authorisation")
+    public ValidatableResponse updateUserData(String type, String email)throws Exception{
+        return given()
+                .log().all()
+                .baseUri(BASE_URI)
+                .contentType(ContentType.JSON)
+                .basePath(AUTH_USER_ENDPOINT)
+                .body(String.format("{\"%s\":\"%s\"}",type,email))
+                .patch()
                 .then()
                 .log().all();
     }
