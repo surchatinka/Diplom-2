@@ -33,43 +33,36 @@ public class LoginUserTest {
     @Test
     public void authorizationExistingUserTest_ok(){
         ValidatableResponse response = client.loginUser(user);
-        int code = response.extract().statusCode();
-        token = response.extract().as(Token.class);
-        boolean ok = response.extract().jsonPath().get("success");
+        int code = client.getStatusCode(response);
+        token = client.getToken(response);
+        boolean ok = client.getStatus(response);
 
         Assert.assertEquals("wrong code",SC_OK,code);
         Assert.assertNotNull(token.getAccessToken());
         Assert.assertNotNull(token.getRefreshToken());
         Assert.assertTrue(ok);
-
     }
     @Test
     public void authorizationNoLoginTest_fail(){
         User.UserBuilder builder = User.builder().email("").name(user.getName()).password(user.getPassword());
         User userNoEmail = builder.build();
-        ValidatableResponse response = client.loginUser(userNoEmail);
-        int code = response.extract().statusCode();
-        token = response.extract().as(Token.class);
-        boolean ok = response.extract().jsonPath().get("success");
-        String message = response.extract().jsonPath().get("message");
-
-        Assert.assertEquals("wrong code",SC_UNAUTHORIZED,code);;
-        Assert.assertFalse(ok);
-        Assert.assertEquals("Wrong message","email or password are incorrect", message);
+        authorizationWithout(userNoEmail);
     }
     @Test
     public void authorizationNoPasswordTest_fail(){
         User.UserBuilder builder = User.builder().email(user.getEmail()).name(user.getName()).password("");
         User userNoPassword = builder.build();
-        ValidatableResponse response = client.loginUser(userNoPassword);
-        int code = response.extract().statusCode();
-        token = response.extract().as(Token.class);
-        boolean ok = response.extract().jsonPath().get("success");
-        String message = response.extract().jsonPath().get("message");
+        authorizationWithout(userNoPassword);
+    }
+    private void authorizationWithout(User userWithout){
+        ValidatableResponse response = client.loginUser(userWithout);
+        int code = client.getStatusCode(response);
+        token = client.getToken(response);
+        boolean ok = client.getStatus(response);
+        String message = client.getMessage(response);
 
         Assert.assertEquals("wrong code",SC_UNAUTHORIZED,code);;
         Assert.assertFalse(ok);
         Assert.assertEquals("Wrong message","email or password are incorrect", message);
-
     }
 }

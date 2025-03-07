@@ -1,7 +1,5 @@
 import client.StellarBurgerClient;
 import io.restassured.response.ValidatableResponse;
-
-import lombok.Builder;
 import model.Token;
 import model.User;
 import net.datafaker.Faker;
@@ -9,11 +7,8 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
 import static org.apache.http.HttpStatus.*;
-
 import java.util.Locale;
-
 
 public class CreateUserTest {
 
@@ -41,9 +36,9 @@ public class CreateUserTest {
     @Test
     public void createUserTest_ok() {
         ValidatableResponse response = client.createUser(user);
-        int code = response.extract().statusCode();
-        token = response.extract().as(Token.class);
-        boolean ok = response.extract().jsonPath().get("success");
+        int code = client.getStatusCode(response);
+        token = client.getToken(response);
+        boolean ok = client.getStatus(response);
 
         Assert.assertEquals(WRONG_STATUS_CODE, SC_CREATED, code);
         Assert.assertNotNull("No token received", token.getAccessToken());
@@ -54,11 +49,11 @@ public class CreateUserTest {
     @Test
     public void createExistingUserTest_fail(){
         ValidatableResponse responseOriginal = client.createUser(user);
+        token = client.getToken(responseOriginal);
         ValidatableResponse responseExisted = client.createUser(user);
-        int code = responseExisted.extract().statusCode();
-        boolean ok = responseExisted.extract().jsonPath().get("success");
-        String message = responseExisted.extract().jsonPath().get("message");
-        token = responseOriginal.extract().as(Token.class);
+        int code = client.getStatusCode(responseExisted);
+        boolean ok = client.getStatus(responseExisted);
+        String message = client.getMessage(responseExisted);
 
         Assert.assertEquals(WRONG_STATUS_CODE, SC_FORBIDDEN, code);
         Assert.assertFalse(SUPPOSED_TO_FAIL_BUT_SUCCEED,ok);
@@ -68,42 +63,27 @@ public class CreateUserTest {
     public void createUserWithoutEmailTest_fail(){
         User.UserBuilder builder = User.builder().email("").name(user.getName()).password(user.getPassword());
         User userNoEmail = builder.build();
-
-        ValidatableResponse response = client.createUser(userNoEmail);
-        int code = response.extract().statusCode();
-        boolean ok = response.extract().jsonPath().get("success");
-        String message = response.extract().jsonPath().get("message");
-        token = response.extract().as(Token.class);
-
-        Assert.assertEquals(WRONG_STATUS_CODE, SC_FORBIDDEN, code);
-        Assert.assertFalse(SUPPOSED_TO_FAIL_BUT_SUCCEED,ok);
-        Assert.assertEquals(MESSAGE_TEXT_DON_T_MATCH, REQUIRED_FIELD_MISSING,message);
+        createUserWithout(userNoEmail);
     }
     @Test
     public void createUserWithoutPasswordTest_fail(){
         User.UserBuilder builder = User.builder().email(user.getEmail()).name(user.getName()).password("");
         User userNoPassword = builder.build();
-
-        ValidatableResponse response = client.createUser(userNoPassword);
-        int code = response.extract().statusCode();
-        boolean ok = response.extract().jsonPath().get("success");
-        String message = response.extract().jsonPath().get("message");
-        token = response.extract().as(Token.class);
-
-        Assert.assertEquals(WRONG_STATUS_CODE, SC_FORBIDDEN, code);
-        Assert.assertFalse(SUPPOSED_TO_FAIL_BUT_SUCCEED,ok);
-        Assert.assertEquals(MESSAGE_TEXT_DON_T_MATCH,REQUIRED_FIELD_MISSING,message);
+        createUserWithout(userNoPassword);
     }
     @Test
     public void createUserWithoutNameTest_fail(){
         User.UserBuilder builder = User.builder().email(user.getEmail()).name("").password(user.getPassword());
         User userNoName = builder.build();
+        createUserWithout(userNoName);
+    }
 
-        ValidatableResponse response = client.createUser(userNoName);
-        int code = response.extract().statusCode();
-        boolean ok = response.extract().jsonPath().get("success");
-        String message = response.extract().jsonPath().get("message");
-        token = response.extract().as(Token.class);
+    private void createUserWithout(User user) {
+        ValidatableResponse response = client.createUser(user);
+        int code = client.getStatusCode(response);
+        boolean ok = client.getStatus(response);
+        String message = client.getMessage(response);
+        token = client.getToken(response);
 
         Assert.assertEquals(WRONG_STATUS_CODE, SC_FORBIDDEN, code);
         Assert.assertFalse(SUPPOSED_TO_FAIL_BUT_SUCCEED,ok);

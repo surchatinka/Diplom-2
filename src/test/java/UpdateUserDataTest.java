@@ -30,7 +30,7 @@ public class UpdateUserDataTest {
         Faker faker = new Faker(Locale.UK);
         User user = new User(faker.internet().emailAddress(), faker.bothify("??##??##??"), faker.name().firstName());
         ValidatableResponse response = client.createUser(user);
-        token = response.extract().as(Token.class);
+        token = client.getToken(response);
     }
     @After
     public void after() {
@@ -49,42 +49,34 @@ public class UpdateUserDataTest {
     }
 
     @Test
-    public void updateUserDataWithAuth_ok() throws Exception {
-        Faker faker = new Faker(Locale.CHINESE);
-        String fakerString;
-        switch (field){
-            case "email": fakerString = faker.internet().emailAddress(); break;
-            case "name": fakerString = faker.name().firstName(); break;
-            case "password": fakerString = faker.bothify("??##??##??"); break;
-            default: throw new RuntimeException(field + " - field don't exist. Nothing to update.");
-        }
-
+    public void updateUserDataWithAuthTest_ok() throws Exception {
+        String fakerString = changeData(field);
         ValidatableResponse response = client.updateUserData(token,field,fakerString);
-        int code = response.extract().statusCode();
-        boolean ok = response.extract().jsonPath().get("success");
+        int code = client.getStatusCode(response);
+        boolean ok = client.getStatus(response);
 
         Assert.assertEquals("wrong status code",SC_OK,code);
         Assert.assertTrue("operation failed",ok);
     }
-
     @Test
-    public void updateUserDataWithoutAuth_fail() throws Exception {
-        Faker faker = new Faker(Locale.CHINESE);
-        String fakerString;
-        switch (field){
-            case "email": fakerString = faker.internet().emailAddress(); break;
-            case "name": fakerString = faker.name().firstName(); break;
-            case "password": fakerString = faker.bothify("??##??##??"); break;
-            default: throw new RuntimeException(field + " - field don't exist. Nothing to update.");
-        }
-
+    public void updateUserDataWithoutAuthTest_fail() {
+        String fakerString = changeData(field);
         ValidatableResponse response = client.updateUserData(field,fakerString);
-        int code = response.extract().statusCode();
-        boolean ok = response.extract().jsonPath().get("success");
-        String message = response.extract().jsonPath().get("message");
+        int code = client.getStatusCode(response);
+        boolean ok = client.getStatus(response);
+        String message = client.getMessage(response);
 
         Assert.assertEquals("wrong status code",SC_UNAUTHORIZED,code);
         Assert.assertFalse("operation failed",ok);
         Assert.assertEquals("wrong response text","You should be authorised",message);
+    }
+    private String changeData(String field){
+        Faker faker = new Faker(Locale.CHINESE);
+        switch (field){
+            case "email": return faker.internet().emailAddress();
+            case "name": return faker.name().firstName();
+            case "password": return faker.bothify("??##??##??");
+            default: throw new RuntimeException(field + " - field don't exist. Nothing to update.");
+        }
     }
 }
