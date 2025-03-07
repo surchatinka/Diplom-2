@@ -8,7 +8,6 @@ import lombok.Value;
 @AllArgsConstructor
 @Builder
 public class User {
-
     String email;
     String password;
     String name;
