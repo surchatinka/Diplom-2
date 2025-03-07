@@ -1,4 +1,5 @@
 import client.StellarBurgerClient;
+import io.qameta.allure.junit4.DisplayName;
 import io.restassured.response.ValidatableResponse;
 import model.Token;
 import model.User;
@@ -49,6 +50,7 @@ public class UpdateUserDataTest {
     }
 
     @Test
+    @DisplayName("Update user data with authorization")
     public void updateUserDataWithAuthTest_ok() throws Exception {
         String fakerString = changeData(field);
         ValidatableResponse response = client.updateUserData(token,field,fakerString);
@@ -59,6 +61,7 @@ public class UpdateUserDataTest {
         Assert.assertTrue("operation failed",ok);
     }
     @Test
+    @DisplayName("Update user data without authorization")
     public void updateUserDataWithoutAuthTest_fail() {
         String fakerString = changeData(field);
         ValidatableResponse response = client.updateUserData(field,fakerString);

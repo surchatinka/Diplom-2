@@ -1,4 +1,6 @@
 import client.StellarBurgerClient;
+import io.qameta.allure.Issue;
+import io.qameta.allure.junit4.DisplayName;
 import io.restassured.response.ValidatableResponse;
 import model.Token;
 import model.User;
@@ -34,6 +36,8 @@ public class CreateUserTest {
     }
 
     @Test
+    @DisplayName("Create default user")
+    @Issue("Bug report for WRONG SERVER STATUS CODE")
     public void createUserTest_ok() {
         ValidatableResponse response = client.createUser(user);
         int code = client.getStatusCode(response);
@@ -47,6 +51,7 @@ public class CreateUserTest {
 
     }
     @Test
+    @DisplayName("Create existing user")
     public void createExistingUserTest_fail(){
         ValidatableResponse responseOriginal = client.createUser(user);
         token = client.getToken(responseOriginal);
@@ -60,18 +65,21 @@ public class CreateUserTest {
         Assert.assertEquals(MESSAGE_TEXT_DON_T_MATCH, USER_ALREADY_EXISTS,message);
     }
     @Test
+    @DisplayName("Create user without email")
     public void createUserWithoutEmailTest_fail(){
         User.UserBuilder builder = User.builder().email("").name(user.getName()).password(user.getPassword());
         User userNoEmail = builder.build();
         createUserWithout(userNoEmail);
     }
     @Test
+    @DisplayName("Create user without password")
     public void createUserWithoutPasswordTest_fail(){
         User.UserBuilder builder = User.builder().email(user.getEmail()).name(user.getName()).password("");
         User userNoPassword = builder.build();
         createUserWithout(userNoPassword);
     }
     @Test
+    @DisplayName("Create user without name")
     public void createUserWithoutNameTest_fail(){
         User.UserBuilder builder = User.builder().email(user.getEmail()).name("").password(user.getPassword());
         User userNoName = builder.build();

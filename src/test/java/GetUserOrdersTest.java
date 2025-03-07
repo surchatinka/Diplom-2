@@ -1,4 +1,5 @@
 import client.StellarBurgerClient;
+import io.qameta.allure.junit4.DisplayName;
 import io.restassured.response.ValidatableResponse;
 import model.Token;
 import model.User;
@@ -31,6 +32,7 @@ public class GetUserOrdersTest {
     }
 
     @Test
+    @DisplayName("Get user orders with authorization")
     public void authorizedUserTest_ok(){
         ValidatableResponse response = client.getUserOrders(token);
         int code = client.getStatusCode(response);
@@ -40,6 +42,7 @@ public class GetUserOrdersTest {
         Assert.assertTrue("Suppose to success but fail",ok);
     }
     @Test
+    @DisplayName("Get user orders without authorization")
     public void unauthorizedUserTest_fail(){
         ValidatableResponse response = client.getUserOrders();
         int code = client.getStatusCode(response);

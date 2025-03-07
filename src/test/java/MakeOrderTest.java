@@ -1,4 +1,6 @@
 import client.StellarBurgerClient;
+import io.qameta.allure.Issue;
+import io.qameta.allure.junit4.DisplayName;
 import io.restassured.response.ValidatableResponse;
 import model.IngredientData;
 import model.Ingredients;
@@ -50,6 +52,8 @@ public class MakeOrderTest {
     }
 
     @Test
+    @DisplayName("Make order with ingredients and authorization")
+    @Issue("Bug report for WRONG SERVER STATUS CODE")
     public void makeOrderWithAuthAndIngredientsTest_ok(){
         ValidatableResponse response = client.makeOrder(burgerIngredients,token);
         int code = client.getStatusCode(response);
@@ -59,6 +63,8 @@ public class MakeOrderTest {
         Assert.assertTrue("Fail to make an order",ok);
     }
     @Test
+    @DisplayName("Make order without authorization")
+    @Issue("Bug report for WRONG SERVER STATUS CODE")
     public void makeOrderWithoutAuthTest_ok(){
         ValidatableResponse response = client.makeOrder(burgerIngredients);
         int code = client.getStatusCode(response);
@@ -68,6 +74,7 @@ public class MakeOrderTest {
         Assert.assertTrue("Fail to make an order",ok);
     }
     @Test
+    @DisplayName("Make order without ingredients")
     public void makeOrderWithoutIngredientsTest_fail(){
         List<IngredientData> emptyList = new ArrayList<>();
         Ingredients.IngredientsBuilder builder = Ingredients.builder().data(emptyList);
@@ -83,6 +90,7 @@ public class MakeOrderTest {
         Assert.assertEquals("Response text differs",message,"Ingredient ids must be provided");
     }
     @Test
+    @DisplayName("Make order with non-existing ingredients")
     public void makeOrderWithWrongIngredientsTest_fail(){
         Faker faker = new Faker(Locale.ENGLISH);
         List<IngredientData> randomList = new ArrayList<>();

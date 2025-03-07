@@ -18,8 +18,7 @@ public class StellarBurgerClient {
     private static final String ORDERS_ENDPOINT = "/api/orders";
     private static final String INGREDIENTS_ENDPOINT = "/api/ingredients";
 
-    @Step
-    @DisplayName ("Client - user create")
+    @Step ("Client - user create")
     public ValidatableResponse createUser(User user){
         return given()
                 .log().all()
@@ -32,8 +31,7 @@ public class StellarBurgerClient {
                 .log().all();
     }
 
-    @Step
-    @DisplayName ("Client - user delete")
+    @Step ("Client - user delete")
     public void deleteUser(Token token){
         given()
                 .log().all()
@@ -45,8 +43,7 @@ public class StellarBurgerClient {
                 .then()
                 .log().all();
     }
-    @Step
-    @DisplayName ("Client - user login")
+    @Step ("Client - user login")
     public ValidatableResponse loginUser(User user){
         return given()
                 .filter(new AllureRestAssured())
@@ -59,8 +56,7 @@ public class StellarBurgerClient {
                 .then()
                 .log().all();
     }
-    @Step
-    @DisplayName("Client - update user data")
+    @Step ("Client - update user data")
     public ValidatableResponse updateUserData(Token token, String type, String email) {
         return given()
                 .log().all()
@@ -73,8 +69,7 @@ public class StellarBurgerClient {
                 .then()
                 .log().all();
     }
-    @Step
-    @DisplayName("Client - update user data - no authorisation")
+    @Step ("Client - update user data - no authorisation")
     public ValidatableResponse updateUserData(String type, String email) {
         return given()
                 .log().all()
@@ -86,8 +81,7 @@ public class StellarBurgerClient {
                 .then()
                 .log().all();
     }
-    @Step
-    @DisplayName("Client - make order with authorization")
+    @Step ("Client - make order with authorization")
     public ValidatableResponse makeOrder(Ingredients ingredients,Token token){
         return given()
                 .log().all()
@@ -100,7 +94,7 @@ public class StellarBurgerClient {
                 .then()
                 .log().all();
     }
-    @DisplayName("Client - make order with authorization")
+    @Step ("Client - make order without authorization")
     public ValidatableResponse makeOrder(Ingredients ingredients){
         return given()
                 .log().all()
@@ -112,8 +106,7 @@ public class StellarBurgerClient {
                 .then()
                 .log().all();
     }
-    @Step
-    @DisplayName("Client - get available ingredients")
+    @Step ("Client - get available ingredients")
     public ValidatableResponse getAvailableIngredients(){
         return given()
                 .baseUri(BASE_URI)
@@ -122,8 +115,7 @@ public class StellarBurgerClient {
                 .get()
                 .then();
     }
-    @Step
-    @DisplayName("Client - get User orders")
+    @Step ("Client - get User orders")
     public ValidatableResponse getUserOrders(Token token){
         return given()
                 .log().all()
@@ -135,8 +127,7 @@ public class StellarBurgerClient {
                 .then()
                 .log().all();
     }
-    @Step
-    @DisplayName("Client - get User orders")
+    @Step ("Client - get User orders")
     public ValidatableResponse getUserOrders(){
         return given()
                 .log().all()
@@ -147,28 +138,23 @@ public class StellarBurgerClient {
                 .then()
                 .log().all();
     }
-    @Step
-    @DisplayName("Client - get response code")
+    @Step ("Client - get response code")
     public int getStatusCode(ValidatableResponse response) {
         return response.extract().statusCode();
     }
-    @Step
-    @DisplayName("Client - get response status")
+    @Step ("Client - get response status")
     public boolean getStatus(ValidatableResponse response) {
         return response.extract().jsonPath().get("success");
     }
-    @Step
-    @DisplayName("Client - get message")
+    @Step ("Client - get message")
     public String getMessage(ValidatableResponse response){
         return response.extract().jsonPath().get("message");
     }
-    @Step
-    @DisplayName("Client - get token")
+    @Step ("Client - get token")
     public Token getToken(ValidatableResponse response){
         return response.extract().as(Token.class);
     }
-    @Step
-    @DisplayName("Client - get ingredients")
+    @Step ("Client - get ingredients")
     public Ingredients getIngredients(ValidatableResponse response){
         return response.extract().as(Ingredients.class);
     }

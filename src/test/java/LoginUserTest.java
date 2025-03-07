@@ -1,4 +1,5 @@
 import client.StellarBurgerClient;
+import io.qameta.allure.junit4.DisplayName;
 import io.restassured.response.ValidatableResponse;
 import model.Token;
 import model.User;
@@ -31,6 +32,7 @@ public class LoginUserTest {
     }
 
     @Test
+    @DisplayName("Login with existing user")
     public void authorizationExistingUserTest_ok(){
         ValidatableResponse response = client.loginUser(user);
         int code = client.getStatusCode(response);
@@ -43,12 +45,14 @@ public class LoginUserTest {
         Assert.assertTrue(ok);
     }
     @Test
+    @DisplayName("Login without login-field")
     public void authorizationNoLoginTest_fail(){
         User.UserBuilder builder = User.builder().email("").name(user.getName()).password(user.getPassword());
         User userNoEmail = builder.build();
         authorizationWithout(userNoEmail);
     }
     @Test
+    @DisplayName("Login without password-field")
     public void authorizationNoPasswordTest_fail(){
         User.UserBuilder builder = User.builder().email(user.getEmail()).name(user.getName()).password("");
         User userNoPassword = builder.build();
