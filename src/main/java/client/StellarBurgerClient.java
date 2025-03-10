@@ -1,7 +1,6 @@
 package client;
 
 import io.qameta.allure.Step;
-import io.qameta.allure.junit4.DisplayName;
 import io.qameta.allure.restassured.AllureRestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.ValidatableResponse;
