@@ -1,21 +1,17 @@
 import client.StellarBurgerClient;
 import io.qameta.allure.Issue;
+import io.qameta.allure.Step;
 import io.qameta.allure.junit4.DisplayName;
 import io.restassured.response.ValidatableResponse;
-import model.IngredientData;
-import model.Ingredients;
-import model.Token;
-import model.User;
+import model.*;
 import net.datafaker.Faker;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-
 import static org.apache.http.HttpStatus.*;
 
 public class MakeOrderTest {
@@ -23,10 +19,10 @@ public class MakeOrderTest {
     private static final int NUMBER_OF_INGREDIENTS = 3;
     private static final String WRONG_STATUS_CODE = "Wrong status code";
     private final StellarBurgerClient client = new StellarBurgerClient();
-    private Ingredients burgerIngredients;
+    private Ingredients availableIngredients;
     private Token token;
 
-
+    @Step("Test preparation")
     @Before
     public void before(){
         Faker faker = new Faker(Locale.UK);
@@ -34,16 +30,9 @@ public class MakeOrderTest {
         ValidatableResponse responseCreate = client.createUser(user);
         token = client.getToken(responseCreate);
 
-        ValidatableResponse responseGetIngredients = client.getAvailableIngredients();
-        burgerIngredients = client.getIngredients(responseGetIngredients);
-        List<IngredientData> listOfIngredients = new ArrayList<>();
-
-        for(int i = 0; i < NUMBER_OF_INGREDIENTS; i++) {
-            int number = (int)(Math.random()* burgerIngredients.getData().size()) ;
-            listOfIngredients.add(burgerIngredients.getData().get(number));
-        }
-        burgerIngredients = new Ingredients(listOfIngredients);
+        availableIngredients = client.getRandomIngredients(NUMBER_OF_INGREDIENTS);
     }
+    @Step("Test cleanup and shutdown")
     @After
     public void after(){
         if(token.getAccessToken()!=null) {
@@ -55,23 +44,27 @@ public class MakeOrderTest {
     @DisplayName("Make order with ingredients and authorization")
     @Issue("Bug report for WRONG SERVER STATUS CODE")
     public void makeOrderWithAuthAndIngredientsTest_ok(){
-        ValidatableResponse response = client.makeOrder(burgerIngredients,token);
+        ValidatableResponse response = client.makeOrder(availableIngredients,token);
         int code = client.getStatusCode(response);
         boolean ok = client.getStatus(response);
-
+        Order order = client.getOrder(response);
         Assert.assertEquals(WRONG_STATUS_CODE,SC_CREATED, code);
         Assert.assertTrue("Fail to make an order",ok);
+        Assert.assertEquals(availableIngredients.getData(),order.getIngredients());
     }
     @Test
     @DisplayName("Make order without authorization")
     @Issue("Bug report for WRONG SERVER STATUS CODE")
     public void makeOrderWithoutAuthTest_ok(){
-        ValidatableResponse response = client.makeOrder(burgerIngredients);
+        ValidatableResponse response = client.makeOrder(availableIngredients);
         int code = client.getStatusCode(response);
         boolean ok = client.getStatus(response);
+        String message = client.getMessage(response);
 
-        Assert.assertEquals(WRONG_STATUS_CODE,SC_CREATED, code);
-        Assert.assertTrue("Fail to make an order",ok);
+        Assert.assertEquals(WRONG_STATUS_CODE,SC_UNAUTHORIZED, code);
+        Assert.assertFalse("Fail to make an order",ok);
+        Assert.assertEquals("Wrong message in json body","You should be authorised",message);
+
     }
     @Test
     @DisplayName("Make order without ingredients")

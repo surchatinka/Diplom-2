@@ -1,5 +1,6 @@
 import client.StellarBurgerClient;
 import io.qameta.allure.Issue;
+import io.qameta.allure.Step;
 import io.qameta.allure.junit4.DisplayName;
 import io.restassured.response.ValidatableResponse;
 import model.Token;
@@ -23,11 +24,13 @@ public class CreateUserTest {
     private Token token;
     private User user;
 
+    @Step("Test preparation")
     @Before
     public void before(){
         Faker faker = new Faker(Locale.UK);
         user = new User(faker.internet().emailAddress(), faker.bothify("??##??##??"), faker.name().firstName());
     }
+    @Step("Test cleanup and shutdown")
     @After
     public void after() {
         if(token.getAccessToken()!=null) {

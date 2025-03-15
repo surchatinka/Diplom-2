@@ -1,4 +1,5 @@
 import client.StellarBurgerClient;
+import io.qameta.allure.Step;
 import io.qameta.allure.junit4.DisplayName;
 import io.restassured.response.ValidatableResponse;
 import model.Token;
@@ -9,7 +10,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import static org.apache.http.HttpStatus.*;
-
 import java.util.Locale;
 
 public class LoginUserTest {
@@ -18,12 +18,14 @@ public class LoginUserTest {
     private User user;
     private Token token;
 
+    @Step("Test preparation")
     @Before
     public void before(){
         Faker faker = new Faker(Locale.UK);
         user = new User(faker.internet().emailAddress(), faker.bothify("??##??##??"), faker.name().firstName());
         client.createUser(user);
     }
+    @Step("Test cleanup and shutdown")
     @After
     public void after(){
         if(token.getAccessToken()!=null) {
