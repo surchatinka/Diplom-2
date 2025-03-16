@@ -1,5 +1,6 @@
 package model;
 
+import com.google.gson.annotations.SerializedName;
 import io.qameta.allure.internal.shadowed.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,5 +11,6 @@ import lombok.Value;
 @AllArgsConstructor
 @JsonIgnoreProperties
 public class IngredientData {
-    String _id;
+    @SerializedName("_id")
+    String id;
 }

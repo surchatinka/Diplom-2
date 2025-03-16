@@ -1,5 +1,6 @@
 package model;
 
+import com.google.gson.annotations.SerializedName;
 import io.qameta.allure.internal.shadowed.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,20 +12,6 @@ import java.util.List;
 @JsonIgnoreProperties
 @Builder
 public class Ingredients {
+    @SerializedName(value="ingredients", alternate={"data"})
     List<IngredientData> data;
-
-    public String toIngredientsJSON(){
-        StringBuilder builder = new StringBuilder();
-        builder.append("{\"ingredients\": [");
-        if (data.isEmpty()) {
-            builder.append("]}");
-        }
-        else {
-            for(IngredientData ingredient:data) {
-                builder.append(String.format("\"%s\",",ingredient.get_id()));
-            }
-            builder.replace(builder.lastIndexOf(","),builder.length(),"]}");
-        }
-        return builder.toString();
-    }
 }

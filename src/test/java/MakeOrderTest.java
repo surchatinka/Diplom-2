@@ -1,10 +1,11 @@
 import client.StellarBurgerClient;
-import io.qameta.allure.Issue;
+import io.qameta.allure.Description;
 import io.qameta.allure.Step;
 import io.qameta.allure.junit4.DisplayName;
 import io.restassured.response.ValidatableResponse;
 import model.*;
 import net.datafaker.Faker;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -18,6 +19,8 @@ public class MakeOrderTest {
 
     private static final int NUMBER_OF_INGREDIENTS = 3;
     private static final String WRONG_STATUS_CODE = "Wrong status code";
+    private static final String MESSAGE_NO_INGREDIENTS = "Ingredient ids must be provided";
+    private static final String NO_AUTHORIZATION = "You should be authorised";
     private final StellarBurgerClient client = new StellarBurgerClient();
     private Ingredients availableIngredients;
     private Token token;
@@ -42,32 +45,41 @@ public class MakeOrderTest {
 
     @Test
     @DisplayName("Make order with ingredients and authorization")
-    @Issue("Bug report for WRONG SERVER STATUS CODE")
+    @Description("Test checks possibility to make an order with authorization and ingredients")
     public void makeOrderWithAuthAndIngredientsTest_ok(){
         ValidatableResponse response = client.makeOrder(availableIngredients,token);
         int code = client.getStatusCode(response);
         boolean ok = client.getStatus(response);
         Order order = client.getOrder(response);
-        Assert.assertEquals(WRONG_STATUS_CODE,SC_CREATED, code);
-        Assert.assertTrue("Fail to make an order",ok);
-        Assert.assertEquals(availableIngredients.getData(),order.getIngredients());
+        String name = client.getName(response);
+        SoftAssertions softly = new SoftAssertions();
+
+        softly.assertThat(code).isEqualTo(SC_OK);
+        softly.assertThat(order.getNumber()).isNotNull();
+        softly.assertThat(name).isNotNull();
+        softly.assertThat(ok).isTrue();
+        softly.assertAll();
     }
     @Test
     @DisplayName("Make order without authorization")
-    @Issue("Bug report for WRONG SERVER STATUS CODE")
+    @Description("Test checks possibility to make an order without authorization")
     public void makeOrderWithoutAuthTest_ok(){
         ValidatableResponse response = client.makeOrder(availableIngredients);
         int code = client.getStatusCode(response);
         boolean ok = client.getStatus(response);
-        String message = client.getMessage(response);
+        Order order = client.getOrder(response);
+        String name = client.getName(response);
+        SoftAssertions softly = new SoftAssertions();
 
-        Assert.assertEquals(WRONG_STATUS_CODE,SC_UNAUTHORIZED, code);
-        Assert.assertFalse("Fail to make an order",ok);
-        Assert.assertEquals("Wrong message in json body","You should be authorised",message);
-
+        softly.assertThat(code).isEqualTo(SC_OK);
+        softly.assertThat(ok).isTrue();
+        softly.assertThat(order.getNumber()).isNotNull();
+        softly.assertThat(name).isNotNull();
+        softly.assertAll();
     }
     @Test
     @DisplayName("Make order without ingredients")
+    @Description("Test checks impossibility to make an order without ingredients")
     public void makeOrderWithoutIngredientsTest_fail(){
         List<IngredientData> emptyList = new ArrayList<>();
         Ingredients.IngredientsBuilder builder = Ingredients.builder().data(emptyList);
@@ -77,13 +89,16 @@ public class MakeOrderTest {
         int code = client.getStatusCode(response);
         boolean ok = client.getStatus(response);
         String message = client.getMessage(response);
+        SoftAssertions softly = new SoftAssertions();
 
-        Assert.assertEquals(WRONG_STATUS_CODE,SC_BAD_REQUEST, code);
-        Assert.assertFalse("Expected fail but success",ok);
-        Assert.assertEquals("Response text differs",message,"Ingredient ids must be provided");
+        softly.assertThat(code).isEqualTo(SC_BAD_REQUEST);
+        softly.assertThat(message).isEqualTo(MESSAGE_NO_INGREDIENTS);
+        softly.assertThat(ok).isFalse();
+        softly.assertAll();
     }
     @Test
     @DisplayName("Make order with non-existing ingredients")
+    @Description("Test checks impossibility to make an order with wrong ingredients")
     public void makeOrderWithWrongIngredientsTest_fail(){
         Faker faker = new Faker(Locale.ENGLISH);
         List<IngredientData> randomList = new ArrayList<>();

@@ -1,14 +1,13 @@
 import client.StellarBurgerClient;
-import io.qameta.allure.Description;
+import io.qameta.allure.Allure;
 import io.qameta.allure.Step;
-import io.qameta.allure.junit4.DisplayName;
 import io.restassured.response.ValidatableResponse;
 import model.Token;
 import model.User;
 import model.UserField;
 import net.datafaker.Faker;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -19,15 +18,16 @@ import java.util.List;
 import java.util.Locale;
 
 @RunWith(Parameterized.class)
-public class UpdateUserDataTest {
+public class UpdateUserEmailOrNameTest {
 
     private final StellarBurgerClient client = new StellarBurgerClient();
     private Token token;
     private User user;
     private final List<String> fields;
     private final boolean authorization;
+    private static final String NO_AUTHORIZATION = "You should be authorised";
 
-    public UpdateUserDataTest(List<String> fields,boolean authorization){
+    public UpdateUserEmailOrNameTest(List<String> fields, boolean authorization){
         this.fields=fields;
         this.authorization = authorization;
     }
@@ -48,48 +48,41 @@ public class UpdateUserDataTest {
         }
     }
 
-    @Parameterized.Parameters
+    @Parameterized.Parameters(name = "Update field(s): {0}; Authorization: {1}")
     public static Object[][] testData(){
         List<String> testData1 = new ArrayList<>();
         List<String> testData2 = new ArrayList<>();
         List<String> testData3 = new ArrayList<>();
-        List<String> testData4 = new ArrayList<>();
-        List<String> testData5 = new ArrayList<>();
-        List<String> testData6 = new ArrayList<>();
-        List<String> testData7 = new ArrayList<>();
 
         testData1.add(UserField.EMAIL.toString().toLowerCase());
         testData2.add(UserField.NAME.toString().toLowerCase());
-        testData3.add(UserField.PASSWORD.toString().toLowerCase());
-        testData4.add(UserField.EMAIL.toString().toLowerCase());
-        testData5.add(UserField.NAME.toString().toLowerCase());
-        testData6.add(UserField.PASSWORD.toString().toLowerCase());
-        testData7.add(UserField.NAME.toString().toLowerCase());
-        testData7.add(UserField.PASSWORD.toString().toLowerCase());
+        testData3.add(UserField.NAME.toString().toLowerCase());
+        testData3.add(UserField.EMAIL.toString().toLowerCase());
 
         return new Object[][]{
                 {testData1,true},
                 {testData2,true},
+                {testData1,false},
+                {testData2,false},
                 {testData3,true},
-                {testData4,false},
-                {testData5,false},
-                {testData6,false},
-                {testData7,true}
+                {testData3,false},
         };
     }
 
     @Test
-    @DisplayName("Update user data test")
-    @Description("Update email, name, password of an user with or without authorization")
     public void updateUserData(){
+        Allure.description("Update "+ fields + " of an user with or without authorization");
+        Allure.getLifecycle().updateTestCase(result -> {
+            result.setName("Update users " + fields);
+        });
         User fakerUser = changeData(fields);
         ValidatableResponse response;
 
         if(authorization){
-            response = client.updateUserData(token,fields,fakerUser);
+            response = client.updateUserEmailOrName(token,fakerUser);
         }
         else{
-            response = client.updateUserData(fields,fakerUser);
+            response = client.updateUserEmailOrName(fakerUser);
         }
 
         int code = client.getStatusCode(response);
@@ -97,18 +90,26 @@ public class UpdateUserDataTest {
 
         if(authorization){
             User userUpdated = client.getEmailAndLogin(response);
-            Assert.assertEquals("wrong status code",SC_OK,code);
-            Assert.assertTrue("operation failed",ok);
-            Assert.assertEquals(fakerUser.emailAndNameAsJson(),userUpdated.emailAndNameAsJson());
+            SoftAssertions softly = new SoftAssertions();
+
+            softly.assertThat(code).isEqualTo(SC_OK);
+            softly.assertThat(fakerUser.getName()).isEqualTo(userUpdated.getName());
+            softly.assertThat(fakerUser.getEmail()).isEqualTo(userUpdated.getEmail());
+            softly.assertThat(ok).isTrue();
+            softly.assertAll();
         }
         else{
             String message = client.getMessage(response);
-            Assert.assertEquals("wrong status code",SC_UNAUTHORIZED,code);
-            Assert.assertFalse("operation failed",ok);
-            Assert.assertEquals("wrong response text","You should be authorised",message);
+            SoftAssertions softly = new SoftAssertions();
+
+            softly.assertThat(code).isEqualTo(SC_UNAUTHORIZED);
+            softly.assertThat(message).isEqualTo(NO_AUTHORIZATION);
+            softly.assertThat(ok).isFalse();
+            softly.assertAll();
         }
     }
 
+    @Step("Generate modified user")
     private User changeData(List<String> fields) {
         Faker faker = new Faker(Locale.CANADA);
         String email = user.getEmail();
@@ -121,9 +122,6 @@ public class UpdateUserDataTest {
                     break;
                 case "name":
                     name = faker.name().firstName();
-                    break;
-                case "password":
-                    password = faker.bothify("??##??##??");
                     break;
                 default: throw new RuntimeException(field + " - field don't exist. Nothing to update.");
             }

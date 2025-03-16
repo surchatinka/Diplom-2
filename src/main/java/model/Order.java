@@ -1,5 +1,6 @@
 package model;
 
+import com.google.gson.annotations.SerializedName;
 import io.qameta.allure.internal.shadowed.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,7 +12,12 @@ import java.util.List;
 @AllArgsConstructor
 @JsonIgnoreProperties
 public class Order {
-    String _id;
-    List<IngredientData> ingredients;
+    @SerializedName("ingredients")
+    List<String> ingredients;
+    @SerializedName("createdAt")
     String createdAt;
+    @SerializedName("_id")
+    String id;
+    @SerializedName("number")
+    int number;
 }

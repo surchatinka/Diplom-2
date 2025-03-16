@@ -56,9 +56,8 @@ public class StellarBurgerClient {
                 .then()
                 .log().all();
     }
-    @Step ("Client - update user data")
-    public ValidatableResponse updateUserData(Token token, List<String> keys, User user) {
-        String json = generateJSON(keys,user);
+    @Step ("Client - update user email or name")
+    public ValidatableResponse updateUserEmailOrName(Token token, User user) {
         return given()
                 .filter(new AllureRestAssured())
                 .log().all()
@@ -66,21 +65,20 @@ public class StellarBurgerClient {
                 .contentType(ContentType.JSON)
                 .basePath(AUTH_USER_ENDPOINT)
                 .header("Authorization", token.getAccessToken())
-                .body(json)
+                .body(user)
                 .patch()
                 .then()
                 .log().all();
     }
-    @Step ("Client - update user data - no authorization")
-    public ValidatableResponse updateUserData(List<String> keys, User user) {
-        String json = generateJSON(keys,user);
+    @Step ("Client - update user email or name - no authorization")
+    public ValidatableResponse updateUserEmailOrName(User user) {
         return given()
                 .filter(new AllureRestAssured())
                 .log().all()
                 .baseUri(BASE_URI)
                 .contentType(ContentType.JSON)
                 .basePath(AUTH_USER_ENDPOINT)
-                .body(json)
+                .body(user)
                 .patch()
                 .then()
                 .log().all();
@@ -94,7 +92,7 @@ public class StellarBurgerClient {
                 .contentType(ContentType.JSON)
                 .header("Authorization", token.getAccessToken())
                 .basePath(ORDERS_ENDPOINT)
-                .body(ingredients.toIngredientsJSON())
+                .body(ingredients)
                 .post()
                 .then()
                 .log().all();
@@ -107,7 +105,7 @@ public class StellarBurgerClient {
                 .baseUri(BASE_URI)
                 .contentType(ContentType.JSON)
                 .basePath(ORDERS_ENDPOINT)
-                .body(ingredients.toIngredientsJSON())
+                .body(ingredients)
                 .post()
                 .then()
                 .log().all();
@@ -167,6 +165,10 @@ public class StellarBurgerClient {
     private Ingredients getIngredients(ValidatableResponse response){
         return response.extract().as(Ingredients.class);
     }
+    @Step ("Client - get ingredients")
+    public String getName(ValidatableResponse response){
+        return response.extract().jsonPath().get("name");
+    }
     @Step("Client - get random ingredients")
     public Ingredients getRandomIngredients(int numberOfIngredients){
 
@@ -181,35 +183,14 @@ public class StellarBurgerClient {
     }
     @Step("Client - get user orders")
     public Order getOrder(ValidatableResponse response){
-        return response.extract().jsonPath().getObject("order", Order.class);
+        return response.extract().as(Order.class);
     }
     @Step("Client - get user orders")
     public List<Order> getOrders(ValidatableResponse response){
-        return response.extract().jsonPath().get("orders");
+        return response.extract().jsonPath().getList("orders", Order.class);
     }
     @Step ("Client - get user")
     public User getEmailAndLogin(ValidatableResponse response){
         return response.extract().jsonPath().getObject("user",User.class);
-    }
-
-    private String generateJSON(List<String> keys, User user){
-        StringBuilder json = new StringBuilder();
-        json.append("{");
-        for (String key :keys){
-            switch (key){
-                case "email":
-                    json.append(String.format("\"%s\":\"%s\",",key,user.getEmail()));
-                    break;
-                case "name":
-                    json.append(String.format("\"%s\":\"%s\",",key,user.getName()));
-                    break;
-                case "password":
-                    json.append(String.format("\"%s\":\"%s\",",key,user.getPassword()));
-                    break;
-            }
-        }
-        json.delete(json.lastIndexOf(","),json.length());
-        json.append("}");
-        return json.toString();
     }
 }
